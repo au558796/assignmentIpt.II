@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(pacman)
-p_load(ggplot2,dplyr, lmer4, lmerTest)
+p_load(ggplot2,dplyr, lme4, lmerTest)
 getwd()
 locpath="C:/Users/Dana/Desktop/METHODS III/assignmentIpt.II"
 setwd(locpath)
