@@ -1,58 +1,49 @@
 ---
 title: "Assignment 1 - Language Development in ASD - part 2"
-author: "Dana Jensaen"
+author: "Dana Jensen"
 date: "July 7, 2017"
 output: html_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(pacman)
 p_load(ggplot2,dplyr, lme4, lmerTest)
-getwd()
-locpath="C:/Users/Dana/Desktop/METHODS III/assignmentIpt.II"
-setwd(locpath)
-data = read.csv("df.csv")
-
+setwd("C:/Users/Dana/Desktop/METHODS III/assignmentIpt.II")
+df = read.csv("df.csv")
 ```
-## Exercise 1) Preliminary Data Exploration
-
+### Exercise 1)
 Describe the participant samples in the dataset (e.g. by diagnosis, age, etc.). Do you think the two groups are well balanced? If not, what do you think was the reason?
 ```{r}
 #important information only
-df = select(data, SUBJ, VISIT, Diagnosis, Gender, Age, Ethnicity, ADOS, MullenRaw, ExpressiveLangRaw, CHI_MLU, types_CHI, tokens_CHI, MOT_MLU)
+df = select(df, SUBJ, VISIT, Diagnosis, Gender, Age, Ethnicity, ADOS, MullenRaw, ExpressiveLangRaw, CHI_MLU, types_CHI, tokens_CHI, MOT_MLU)
 
-###Let's compare the two groups
-#########EDIT: non of these plots fucking work
+##Let's compare the two groups
+
 #by age
 model = lm(Age~Diagnosis, data = df)#intercept = 43, slop = -12, ***
 summary(model)
-
-plot = ggplot(model, aes(x = Diagnosis, y = Age) 
-              + geom_violin()
-              + geom_smooth(method ="lm"))
+#plot this way
+plot = ggplot(df, aes(Diagnosis, Age)) + geom_boxplot()
 plot
 
 #by gender
 model1 = glm(Gender ~ Diagnosis, family = binomial, df)
-summary(model1)#cant say much except non significant
-
-plot1 = ggplot(model1, aes(x = Diagnosis, y = Gender)) + 
-  geom_bar(aes())+
-  geom_smooth(method = "lm")
+summary(model1)#non significant
+#do the jitter bug
+plot1 = ggplot(df, aes(x = Diagnosis, y = Gender)) + 
+  geom_jitter()
 plot1
 
 #by ethnicity
 model2=glm(Ethnicity ~ Diagnosis, family = binomial, df)
 summary(model1)#not significant
-
-plot2 = ggplot(model1, aes(x = Diagnosis, y = Ethnicity)) + 
-  geom_violin(aes())+
-  geom_smooth(method = "lm")
+#jitter again
+plot2 = ggplot(df, aes(Diagnosis, Ethnicity)) + 
+  geom_jitter()
 plot2
 ```
 
-### Exercise 2) Children learning language: the effects of time and ASD
+### Exercise 2)
 Describe linguistic development in TD and ASD children in terms of Mean Length of Utterance (MLU)?
 ```{r}
 #predict MLU by diagnosis and visit
@@ -63,12 +54,12 @@ summary(model3)
 #td has .66 more mlu than ad
 #adjusted r squared: .30
 
-plot3 = ggplot(model3, aes(x = VISIT, y = CHI_MLU)) + 
+plot3 = ggplot(df, aes(x = VISIT, y = CHI_MLU)) + 
   geom_point(aes())+
   geom_smooth(method = "lm")
-plot3 #at least this plot works
+plot3 #so beautiful
 ```
-### Exercise 3) Child directed speech as a moving target
+### Exercise 3) 
 Describe how parental use of language changes over time in terms of MLU. What do you think is going on?
 ```{r}
 #mom mlu predicted by visit
@@ -77,28 +68,39 @@ summary(model4)
 #significant
 #every visit mom mlu increases by .12
 #adjusted r squared: .09
-
-plot4 = ggplot(model4, aes(x = VISIT, y = MOT_MLU)) + 
+plot4 = ggplot(df, aes(x = VISIT, y = MOT_MLU)) + 
   geom_point(aes())+
   geom_smooth(method = "lm")
 plot4
+
+#just an interesting observation...
+model5 = lm(MOT_MLU ~ VISIT + Diagnosis, data = df)
+summary(model5)
+plot5 = ggplot(df, aes(VISIT, MOT_MLU)) + 
+  geom_point()+
+  facet_grid(.~Diagnosis)+
+  geom_smooth(method = 'lm')
+plot5
+#... MOT_MLU seems higher for TD over visits
+
 ```
 
-### Exercise 4) Looking into "individual differences" (demographic, clinical or cognitive profiles)
+### Exercise 4)
 Would it make sense to add any of them to your model of linguistic trajectories? Create the best possible model (the one that best explain the data, with MLU as outcome). Describe your strategy to select the best models (how did you choose the variables to include?) and send the code to Riccardo and Celine.
 
 ```{r}
 #let's make a model eh
-model5 = lmer(CHI_MLU ~ 1 + VISIT + ExpressiveLangRaw + (1+VISIT | SUBJ), df, REML = F)
-summary(model5)
+model6 = lmer(CHI_MLU ~ 1 + VISIT + ExpressiveLangRaw + (1+VISIT | SUBJ), df, REML = F)
+summary(model6)
 #AIC: 547.8 - not bad eh
 #both significant variables
 #for every visit, mlu increases by .23
 #for every increase of incriment in verbal IQ, mlu increases by .07
 #correlation of variable: -.004 - nice eh bud
 ```
-### [OPTIONAL] Exercise 5) Comment on how the three linguistic variables measure linguistic performance (the so-called "construct validity" of the measures). Do they express the same variance? 
-
-I DO NOT KNOW WHAT THAT MEANS???????^^^^^^^^^
-
-
+### Exercise 5) 
+Comment on how the three linguistic variables measure linguistic performance (the so-called "construct validity" of the measures). Do they express the same variance? 
+```{r}
+model7 = glm(Diagnosis ~ 1 + CHI_MLU + tokens_CHI + types_CHI, df, family = 'binomial')
+summary(model7)#don't get a correlation matrix for some reason?
+```
