@@ -1,106 +1,117 @@
 ---
-title: "Assignment 1 - Language Development in ASD - part 2"
+title: "Assignment I pt. II"
 author: "Dana Jensen"
 date: "July 7, 2017"
 output: html_document
 ---
 ```{r setup, include=FALSE}
+#prelude
 knitr::opts_chunk$set(echo = TRUE)
+install.packages("ggplot2")
 library(pacman)
-p_load(ggplot2,dplyr, lme4, lmerTest)
-setwd("C:/Users/Dana/Desktop/METHODS III/assignmentIpt.II")
-df = read.csv("df.csv")
+p_load(ggplot2, dplyr, lme4, lmerTest)
+locpath="C:/Users/Dana/Desktop/METHODS III/assignmentIpt.II"
+setwd(locpath)
+data = read.csv("df.csv")
+View(df)
 ```
-### Exercise 1)
-Describe the participant samples in the dataset (e.g. by diagnosis, age, etc.). Do you think the two groups are well balanced? If not, what do you think was the reason?
+### Exercise 1) Preliminary Data Exploration, language development in Autism Spectrum Disorder (ASD)
 ```{r}
+  ## Describe the participant samples in the dataset (e.g. by diagnosis, age,   etc.). Do you think the two groups are well balanced? If not, what do you think was the reason? Identify relevant variables: participants demographic   characteristics, diagnosis, ADOS, Verbal IQ, Non Verbal IQ, Visit, Number of   words used, Number of unique words used, length of utterance in both child    and parents. Describe the characteristics of the two groups of participants   and whether the two groups are well matched.
+
 #important information only
-df = select(df, SUBJ, VISIT, Diagnosis, Gender, Age, Ethnicity, ADOS, MullenRaw, ExpressiveLangRaw, CHI_MLU, types_CHI, tokens_CHI, MOT_MLU)
+data = dplyr::select(data, SUBJ, VISIT, Diagnosis, Gender, Age, Ethnicity, ADOS, MullenRaw, ExpressiveLangRaw, CHI_MLU, types_CHI, tokens_CHI, MOT_MLU)
 
-##Let's compare the two groups
-
-#by age
-model = lm(Age~Diagnosis, data = df)#intercept = 43, slop = -12, ***
+#Let's compare the two groups
+model =lm(Age~Diagnosis, data = data)#intercept = 43, slop = -12
 summary(model)
-#plot this way
-plot = ggplot(df, aes(Diagnosis, Age)) + geom_boxplot()
+
+plot = ggplot(model, aes(x = Diagnosis, y = Age, colour = Age)) + 
+  geom_jitter(aes())+
+  geom_smooth(method = "lm")
 plot
 
-#by gender
-model1 = glm(Gender ~ Diagnosis, family = binomial, df)
-summary(model1)#non significant
-#do the jitter bug
-plot1 = ggplot(df, aes(x = Diagnosis, y = Gender)) + 
-  geom_jitter()
+model1 = glm(Gender ~ Diagnosis, family = binomial, data)
+summary(model1)#cant say much except non significant
+
+plot1 = ggplot(model1, aes(x = Diagnosis, y = Gender, color = Gender)) + 
+  geom_jitter(aes())+
+  geom_smooth(method = "lm")
 plot1
 
-#by ethnicity
-model2=glm(Ethnicity ~ Diagnosis, family = binomial, df)
+model2=glm(Ethnicity ~ Diagnosis, family = binomial, data)
 summary(model1)#not significant
-#jitter again
-plot2 = ggplot(df, aes(Diagnosis, Ethnicity)) + 
-  geom_jitter()
+
+plot2 = ggplot(model2, aes(x = Diagnosis, y = Ethnicity, color = Ethnicity)) +
+  geom_jitter(aes())+
+  geom_smooth(method = "lm")
 plot2
 ```
-
-### Exercise 2)
-Describe linguistic development in TD and ASD children in terms of Mean Length of Utterance (MLU)?
+[REPORT THE RESULTS]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Exercise 2) Children learning language: the effects of time and ASD
 ```{r}
-#predict MLU by diagnosis and visit
-model3 = lm(CHI_MLU~ VISIT + Diagnosis, data = df)
+  ## Let's test hypothesis 1: Children with ASD display a language impairment   ## Hypothesis: The child's MLU changes: i) over time, ii) according to        diagnosis. Let's start with a simple mixed effects linear model
+  ## Remember to plot the data first and then to run a statistical test.
+
+  ##How would you evaluate whether the model is a good model?
+
+  ## Describe linguistic development in TD and ASD children in terms of Mean    Length of Utterance (MLU)?
+model3 = lmer(CHI_MLU~ VISIT + Diagnosis + (1+VISIT|SUBJ), data = data)
 summary(model3)
-#both significant
-#for every visit mlu increases by .23
-#td has .66 more mlu than ad
-#adjusted r squared: .30
-
-plot3 = ggplot(df, aes(x = VISIT, y = CHI_MLU)) + 
+mlu05_plot = ggplot(model3, aes(x = VISIT, y = CHI_MLU)) + 
   geom_point(aes())+
+  facet_wrap(~Diagnosis)+
   geom_smooth(method = "lm")
-plot3 #so beautiful
+mlu05_plot
+
+  ## Let's check whether a growth curve model is better.
+  ## Remember: a growth curve model assesses whether changes in time can be     described by linear, or quadratic, or cubic (or... etc.) components.
+  ## First build the different models, then compare them to see which one is    better
+
 ```
-### Exercise 3) 
-Describe how parental use of language changes over time in terms of MLU. What do you think is going on?
+[REPORT THE RESULTS]
+Remember to report:
+- the estimates for each predictor (beta estimate, standard error, p-value)
+- A plain word description of the results
+- Linguistic development of children MLU is affected by ... [COMPLETE]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Exercise 3) Child directed speech as a moving target. Let's test hypothesis 2: Parents speak equally to children with ASD and TD  (Exercise 3). Hypothesis: Parental MLU changes: i) over time, ii) according to diagnosis
 ```{r}
-#mom mlu predicted by visit
-model4 = lm(MOT_MLU~ VISIT, data = df)
+  ## Describe how parental use of language changes over time in terms of MLU.   What do you think is going on?
+
+model4 = lmer(MOT_MLU ~ VISIT + Diagnosis + (1+VISIT|SUBJ), data = data)
 summary(model4)
-#significant
-#every visit mom mlu increases by .12
-#adjusted r squared: .09
-plot4 = ggplot(df, aes(x = VISIT, y = MOT_MLU)) + 
+mlu06_plot = ggplot(model4, aes(x = VISIT, y = MOT_MLU)) + 
   geom_point(aes())+
+  facet_wrap(~Diagnosis)+
   geom_smooth(method = "lm")
-plot4
-
-#just an interesting observation...
-model5 = lm(MOT_MLU ~ VISIT + Diagnosis, data = df)
-summary(model5)
-plot5 = ggplot(df, aes(VISIT, MOT_MLU)) + 
-  geom_point()+
-  facet_grid(.~Diagnosis)+
-  geom_smooth(method = 'lm')
-plot5
-#... MOT_MLU seems higher for TD over visits
-
+mlu06_plot
 ```
-
-### Exercise 4)
-Would it make sense to add any of them to your model of linguistic trajectories? Create the best possible model (the one that best explain the data, with MLU as outcome). Describe your strategy to select the best models (how did you choose the variables to include?) and send the code to Riccardo and Celine.
-
+[REPORT THE RESULTS]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Exercise 4) Looking into "individual differences" (demographic, clinical or cognitive profiles)
 ```{r}
-#let's make a model eh
-model6 = lmer(CHI_MLU ~ 1 + VISIT + ExpressiveLangRaw + (1+VISIT | SUBJ), df, REML = F)
-summary(model6)
-#AIC: 547.8 - not bad eh
-#both significant variables
-#for every visit, mlu increases by .23
-#for every increase of incriment in verbal IQ, mlu increases by .07
-#correlation of variable: -.004 - nice eh bud
+  ## Create the best possible model (the one that best explain the data, with   MLU as outcome). Describe your strategy to select the best models (how did    you choose the variables to include?).
+
+#vogue
+nullModel = lm(CHI_MLU~1, data)
+nullModel1=lmer(CHI_MLU~1+(1|VISIT), data)
+model5 = lm(CHI_MLU ~ 1 + VISIT, data)
+model6 = lm(CHI_MLU ~ 1 + VISIT + ExpressiveLangRaw, data)
+model7 = lmer(CHI_MLU ~ 1 + VISIT + ExpressiveLangRaw + (1|VISIT), data, REML = F)
+hashtagBestModelEver = lmer(CHI_MLU ~ 1 + VISIT + ExpressiveLangRaw + (1+VISIT | SUBJ), data, REML = F)
+
+#anovas
+a1<-anova(nullModel, model5, model6)
+a2<-anova(nullModel1, model7, hashtagBestModelEver)
+a1
+a2
+
+  ## Your task now is to figure out how to best describe the children           linguistic trajectory.
+
 ```
-### Exercise 5) 
-Comment on how the three linguistic variables measure linguistic performance (the so-called "construct validity" of the measures). Do they express the same variance? 
-```{r}
-model7 = glm(Diagnosis ~ 1 + CHI_MLU + tokens_CHI + types_CHI, df, family = 'binomial')
-summary(model7)#don't get a correlation matrix for some reason?
-```
+[REPORT THE RESULTS]
+- Identify the statistical models that best describes your data (that is, the children's MLU). Describe how you selected the best model.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### [OPTIONAL] Exercise 5) Comment on how the three linguistic variables measure linguistic performance (the so-called "construct validity" of the measures). Do they express the same variance?
