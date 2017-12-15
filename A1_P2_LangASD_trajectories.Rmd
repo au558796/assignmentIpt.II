@@ -11,7 +11,7 @@ output: html_document
 #prelude
 knitr::opts_chunk$set(echo = TRUE)
 library(pacman)
-p_load(ggplot2, dplyr, lme4, lmerTest)
+p_load(ggplot2, dplyr, lme4, lmerTes, MuMIn)
 locpath="C:/Users/Dana/Desktop/METHODS III/assignmentIpt.II"
 setwd(locpath)
 data = read.csv("df.csv")
@@ -42,6 +42,7 @@ plot1
 
 model2=glm(Ethnicity ~ Diagnosis, family = binomial, data)
 summary(model2)#not significant
+r.squaredGLMM(model2)
 
 plot2 = ggplot(data, aes(x = Diagnosis, y = Ethnicity, color = Ethnicity)) +
   geom_jitter(aes())+
@@ -64,6 +65,7 @@ mlu05_plot
 
 null <- lmer(CHI_MLU ~ 1 + (1+VISIT|SUBJ), data = data, REML = FALSE)
 summary(null)
+
 model3 = lmer(CHI_MLU~ VISIT + Diagnosis + (1+VISIT|SUBJ), data = data, REML = FALSE)
 summary(model3)
 
